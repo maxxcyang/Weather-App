@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #e3f2fd;
+            color: #333;
+        }
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .weather-card {
+            background: rgba(230, 230, 230, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .weather-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+        .weather-icon {
+            width: 50px;
+            height: 50px;
+        }
+        .temperature {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #1976d2;
+        }
+        .details {
+            color: #555;
+        }
+        h1 {
+            text-align: center;
+            color: #1976d2;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        @media (max-width: 1200px) {
+            .weather-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .weather-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Dashboard</h1>
+    <div id="weather-container" class="weather-grid"></div>
+
+    <script>
+        async function fetchWeather() {
+            try {
+                const response = await fetch('/api/weather');
+                const data = await response.json();
+                displayWeather(data);
+            } catch (error) {
+                console.error('Error fetching weather:', error);
+            }
+        }
+
+        function displayWeather(weatherData) {
+            const container = document.getElementById('weather-container');
+            container.innerHTML = weatherData.map(weather => `
+                <div class="weather-card">
+                    <h2>${weather.city}</h2>
+                    <img class="weather-icon" src="http://openweathermap.org/img/wn/${weather.icon}@2x.png" alt="Weather icon">
+                    <div class="temperature">${weather.temperature}°C</div>
+                    <div class="details">
+                        <p>Feels like: ${weather.feels_like}°C</p>
+                        <p>Humidity: ${weather.humidity}%</p>
+                        <p>Wind: ${weather.wind_speed} m/s</p>
+                        <p>Last updated: ${new Date(weather.timestamp).toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Fetch weather data immediately and then every 5 minutes
+        fetchWeather();
+        setInterval(fetchWeather, 5 * 60 * 1000);
+    </script>
+</body>
+</html> 
