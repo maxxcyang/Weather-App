@@ -72,7 +72,7 @@ app.get('/', (req: Request, res: Response): void => {
 // Initial weather data fetch
 updateWeatherData();
 
-// Set up regular interval for weather updates
+// Updates weather data every 5 minutes
 setInterval(updateWeatherData, 5 * 60 * 1000); // 5 minutes
 
 app.listen(PORT, () => {
