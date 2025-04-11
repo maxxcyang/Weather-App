@@ -4,6 +4,7 @@ interface RateLimitInfo {
     limit: number;
     remaining: number;
     reset: number;
+    windowStart: number;
 }
 
 const MAX_RETRIES = 3;
@@ -16,12 +17,22 @@ const rateLimitCache: Map<string, RateLimitInfo> = new Map();
 // Function to handle rate limits
 async function handleRateLimit(apiKey: string): Promise<void> {
     const rateInfo = rateLimitCache.get(apiKey);
-    if (rateInfo && rateInfo.remaining <= 0) {
-        const now = Math.floor(Date.now() / 1000);
-        const waitTime = rateInfo.reset - now;
-        if (waitTime > 0) {
-            console.log(`Rate limit reached. Waiting ${waitTime} seconds...`);
-            await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
+    const now = Math.floor(Date.now() / 1000);
+    if (rateInfo) {
+        // Check if the current window has expired
+        if (now - rateInfo.windowStart >= RATE_LIMIT_WINDOW) {
+            // Reset the rate limit information
+            rateInfo.windowStart = now;
+            rateInfo.remaining = rateInfo.limit;
+        }
+
+        // If no remaining requests in the window, wait until the reset time
+        if (rateInfo.remaining <= 0) {
+            const waitTime = rateInfo.reset - now;
+            if (waitTime > 0) {
+                console.log(`Rate limit reached. Waiting ${waitTime} seconds...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime * 1000)); // Wait for reset
+            }
         }
     }
 }
@@ -31,8 +42,8 @@ function updateRateLimitInfo(apiKey: string, headers: Headers): void {
     const limit = parseInt(headers.get('X-RateLimit-Limit') || '60');
     const remaining = parseInt(headers.get('X-RateLimit-Remaining') || '60');
     const reset = parseInt(headers.get('X-RateLimit-Reset') || '0');
-    
-    rateLimitCache.set(apiKey, { limit, remaining, reset });
+    const windowStart = Math.floor(Date.now() / 1000);
+    rateLimitCache.set(apiKey, { limit, remaining, reset, windowStart });
 }
 
 //function to get weather data from Open Weather Map for a specific city

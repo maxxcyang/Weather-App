@@ -1,4 +1,4 @@
-# backend-service
+# Weather-App
 Technical challenge that collects and stores weather data from OpenWeatherMap API.
 
 ### Setup:
